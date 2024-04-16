@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lecture Notes Generator Web</title>
+</head>
+<body>
+    <h1>Lecture Notes Generator Web</h1>
+    <form action="{{url_for('generate_pdf')}}" method="post" enctype="multipart/form-data">
+        <input type="file" name="pdftoconvert" id="file_input" accept="application/pdf">
+        <input type="radio" name="paper_type" id="paper_type_blank" value="blank">
+        <label for="paper_type_blank">Blank</label>
+        <input type="radio" name="paper_type" id="paper_type_lined" value="lined">
+        <label for="paper_type_lined">Lined</label>
+        <input type="radio" name="paper_type" id="paper_type_grid" value="grid">
+        <label for="paper_type_grid">Grid</label>
+        <button type="submit">Invia</button>
+    </form>
+</body>
+</html>
