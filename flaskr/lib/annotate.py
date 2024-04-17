@@ -31,8 +31,8 @@ class AnnotatedPDFGenerator(QThread):
     PAGE_HEIGHT: int = 1080
     LINE_DIV: int = 30
 
-    def __init__(self, parent, input_fp: str, output_fp: str, layout: LayoutRule):
-        super().__init__(parent)
+    def __init__(self, input_fp: str, output_fp: str, layout: LayoutRule):
+        #super().__init__(parent)
         self.ip: str = input_fp
         self.op: str = output_fp
         self.layout: LayoutRule = layout
