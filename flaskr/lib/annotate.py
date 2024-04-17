@@ -4,7 +4,6 @@ from typing import Generator, Tuple
 
 import PIL
 from PIL.Image import Image
-from PyQt6.QtCore import QThread, pyqtSignal
 from fitz import Matrix
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
@@ -24,7 +23,7 @@ def export_image(image: Image) -> ImageReader:
     return ImageReader(side_im_data)
 
 
-class AnnotatedPDFGenerator(QThread):
+class AnnotatedPDFGenerator():
 
     MATRIX_ZOOM: int = 2
     PAGE_WIDTH: int = 1800
@@ -32,7 +31,6 @@ class AnnotatedPDFGenerator(QThread):
     LINE_DIV: int = 30
 
     def __init__(self, input_fp: str, output_fp: str, layout: LayoutRule):
-        #super().__init__(parent)
         self.ip: str = input_fp
         self.op: str = output_fp
         self.layout: LayoutRule = layout
