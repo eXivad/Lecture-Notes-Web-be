@@ -32,7 +32,7 @@ def generate_pdf():
     layout: LayoutRule = LayoutRule(request.form['paper_type'])
 
     #Calcolo l'hash del file per utilizzare una chiave univoca sia per il nome del file che per la sessione di download
-    file_id: int = hash(f) 
+    file_id: int = hash(f)
 
     #Salvo il file per la conversione
     f.save(f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}.pdf')
@@ -59,3 +59,4 @@ def download_page(file_id):
 
 if __name__ == "__main__":
     socketio.run(app)
+
