@@ -1,5 +1,5 @@
 {
     "rewrites": [
-      { "source": "/(.*)", "destination": "/flaskr/app" }
+      { "source": "/(.*)", "destination": "/flaskr/app.py" }
     ]
   }
