@@ -3,3 +3,4 @@ reportlab
 PyMuPDF
 pyqt6
 flask
+flask-socketio
