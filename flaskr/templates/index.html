@@ -9,11 +9,11 @@
     <h1>Lecture Notes Generator Web</h1>
     <form action="{{url_for('generate_pdf')}}" method="post" enctype="multipart/form-data">
         <input type="file" name="pdftoconvert" id="file_input" accept="application/pdf">
-        <input type="radio" name="paper_type" id="paper_type_blank" value="blank">
+        <input type="radio" name="paper_type" id="paper_type_blank" value="Blank">
         <label for="paper_type_blank">Blank</label>
-        <input type="radio" name="paper_type" id="paper_type_lined" value="lined">
+        <input type="radio" name="paper_type" id="paper_type_lined" value="Lined">
         <label for="paper_type_lined">Lined</label>
-        <input type="radio" name="paper_type" id="paper_type_grid" value="grid">
+        <input type="radio" name="paper_type" id="paper_type_grid" value="Grid">
         <label for="paper_type_grid">Grid</label>
         <button type="submit">Invia</button>
     </form>

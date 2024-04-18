@@ -1,51 +1,61 @@
-from flask import Flask, request, render_template, send_file, redirect
+from flask import Flask, request, render_template, send_file, redirect, session
 from lib.annotate import AnnotatedPDFGenerator, LayoutRule
+from flask_socketio import SocketIO
 import os
 import threading
+import secrets
+
+UPLOAD_FOLDER = "/temp"
 
 app = Flask(__name__)
-print(os.getcwd())
+socketio = SocketIO(app)
+app.secret_key = secrets.token_hex()
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.debug = True
 
-def get_thread_state(thread_name):
-    for thread in threading.enumerate():
-        if thread.name == thread_name:
-            return thread.is_alive()
-
-    return False
-
+#Home route
 @app.route('/')
 def home():
     return render_template("index.html")
 
+#API per generare il file pdf
+def generate_and_notify(generator: AnnotatedPDFGenerator):
+    generator.start()
+    generator.join()
+    socketio.emit('pdf_ready', {'file': 'done'})
+
 @app.route('/generate', methods = ["POST"])
 def generate_pdf():
 
-    f = request.files["pdftoconvert"] #Salvo il File ricevuto dal Form
+    #Salvo il File ricevuto dal Form
+    f = request.files["pdftoconvert"]
+    layout: LayoutRule = LayoutRule(request.form['paper_type'])
 
     #Calcolo l'hash del file per utilizzare una chiave univoca sia per il nome del file che per la sessione di download
     file_id: int = hash(f) 
 
     #Salvo il file per la conversione
     f.save(f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}.pdf')
-    
-    #Impostazione Generatore
-    generator: AnnotatedPDFGenerator = AnnotatedPDFGenerator(
-        input_fp=f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}.pdf', output_fp='C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}_gen.pdf', layout=LayoutRule.GRID
-    )
-    
-    #Avvio Conversione in nuovo Thread
-    new_generation = threading.Thread(target=generator.run, name = file_id)
-    new_generation.start()
 
-    return redirect(f'/download/{file_id}')
+    #Avvio Conversione in nuovo Thread
+    generator: AnnotatedPDFGenerator = AnnotatedPDFGenerator(
+        input_fp=f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}.pdf', output_fp=f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}_gen.pdf', layout=layout
+    )
+
+    thread = threading.Thread(target = generate_and_notify, args=[generator])
+    thread.start()
+
+    return redirect(f'/download/{file_id}/page')
 
 #Route di download file che permette di sapere al client quando il suo file e pronto
+
 @app.route('/download/<file_id>')
 def download(file_id):
-    get_thread_state(file_id)
-    pass
+    return send_file(f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}_gen.pdf')
 
-#Una volta che il file è stato scaricato eliminarlo dal server per salvare spazio
+@app.route('/download/<file_id>/page')
+def download_page(file_id):
+    return render_template("download.html", id=file_id)
 
 if __name__ == "__main__":
-    app.run(debug = True)
+    socketio.run(app)

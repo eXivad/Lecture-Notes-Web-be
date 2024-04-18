@@ -9,6 +9,8 @@ from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
 import fitz
 
+import threading
+
 
 class LayoutRule(enum.Enum):
     LINED = "Lined"
@@ -23,7 +25,7 @@ def export_image(image: Image) -> ImageReader:
     return ImageReader(side_im_data)
 
 
-class AnnotatedPDFGenerator():
+class AnnotatedPDFGenerator(threading.Thread):
 
     MATRIX_ZOOM: int = 2
     PAGE_WIDTH: int = 1800
@@ -31,6 +33,7 @@ class AnnotatedPDFGenerator():
     LINE_DIV: int = 30
 
     def __init__(self, input_fp: str, output_fp: str, layout: LayoutRule):
+        super().__init__()
         self.ip: str = input_fp
         self.op: str = output_fp
         self.layout: LayoutRule = layout
@@ -115,6 +118,7 @@ class AnnotatedPDFGenerator():
 
         # Save 'er
         new_pdf.save()
+        
 
     def pdf_pages(self) -> Generator[Tuple[Image, Image], None, None]:
 
