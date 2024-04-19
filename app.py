@@ -1,12 +1,11 @@
 import os
 from flask import Flask, request, render_template, send_file, redirect
-import lib.annotate
 from lib.annotate import AnnotatedPDFGenerator, LayoutRule
 from flask_socketio import SocketIO
 import threading
 import time
 
-upload_folder = os.path.join(os.getcwd(), 'flaskr', 'temp')
+upload_folder = os.path.join(os.getcwd(), 'temp')
 
 app = Flask(__name__)
 socketio = SocketIO(app)
