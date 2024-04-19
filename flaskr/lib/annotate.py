@@ -10,6 +10,8 @@ from reportlab.pdfgen.canvas import Canvas
 import fitz
 
 import threading
+
+
 class LayoutRule(enum.Enum):
     LINED = "Lined"
     GRID = "Grid"
