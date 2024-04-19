@@ -1,7 +1,10 @@
+import os
 from flask import Flask, request, render_template, send_file, redirect, session
+import sys
+sys.path.append('lib')
+
 from lib.annotate import AnnotatedPDFGenerator, LayoutRule
 from flask_socketio import SocketIO
-import os
 import threading
 import time
 
