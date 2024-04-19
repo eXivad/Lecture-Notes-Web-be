@@ -3,14 +3,13 @@ from lib.annotate import AnnotatedPDFGenerator, LayoutRule
 from flask_socketio import SocketIO
 import os
 import threading
-import secrets
+import time
 
-UPLOAD_FOLDER = "/temp"
+upload_folder = os.path.join(os.getcwd(), 'flaskr', 'temp')
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-app.secret_key = secrets.token_hex()
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+#app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.debug = True
 
 #Home route
@@ -22,7 +21,7 @@ def home():
 def generate_and_notify(generator: AnnotatedPDFGenerator):
     generator.start()
     generator.join()
-    socketio.emit('pdf_ready', {'file': 'done'})
+    emit_pdf_ready()
 
 @app.route('/generate', methods = ["POST"])
 def generate_pdf():
@@ -32,14 +31,16 @@ def generate_pdf():
     layout: LayoutRule = LayoutRule(request.form['paper_type'])
 
     #Calcolo l'hash del file per utilizzare una chiave univoca sia per il nome del file che per la sessione di download
-    file_id: int = hash(f)
+    file_id: str = str(hash(f))
 
     #Salvo il file per la conversione
-    f.save(f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}.pdf')
+    f.save(os.path.join(upload_folder, file_id+'.pdf'))
 
     #Avvio Conversione in nuovo Thread
     generator: AnnotatedPDFGenerator = AnnotatedPDFGenerator(
-        input_fp=f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}.pdf', output_fp=f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}_gen.pdf', layout=layout
+        input_fp=os.path.join(upload_folder, file_id+'.pdf'), 
+        output_fp=os.path.join(upload_folder, file_id+'_gen.pdf'), 
+        layout=layout
     )
 
     thread = threading.Thread(target = generate_and_notify, args=[generator])
@@ -51,11 +52,23 @@ def generate_pdf():
 
 @app.route('/download/<file_id>')
 def download(file_id):
-    return send_file(f'C:\\Users\\david\\Desktop\\Code\\Lecture-Notes-Web\\flaskr\\temp\\{file_id}_gen.pdf')
+    threading.Thread(target=download_and_delete, args = [file_id]).start()
+    return send_file(os.path.join(upload_folder, file_id+'_gen.pdf'), as_attachment=True)
 
 @app.route('/download/<file_id>/page')
 def download_page(file_id):
+    if(os.path.exists(os.path.join(upload_folder, file_id+'_gen.pdf'))):
+        threading.Thread(target=emit_pdf_ready, args=[3]).start()
     return render_template("download.html", id=file_id)
+
+def download_and_delete(file_id):
+    time.sleep(3)
+    os.remove(os.path.join(upload_folder, file_id+'.pdf'))
+    os.remove(os.path.join(upload_folder, file_id+'_gen.pdf'))
+
+def emit_pdf_ready(time_sleep=0):
+    time.sleep(time_sleep)
+    socketio.emit('pdf_ready', {'file': 'done'})
 
 if __name__ == "__main__":
     socketio.run(app)
