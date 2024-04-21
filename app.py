@@ -18,11 +18,6 @@ def home():
     return render_template("index.html")
 
 #API per generare il file pdf
-def generate_and_notify(generator: AnnotatedPDFGenerator):
-    generator.start()
-    generator.join()
-    emit_pdf_ready()
-
 @app.route('/generate', methods = ["POST"])
 def generate_pdf():
 
@@ -43,10 +38,9 @@ def generate_pdf():
         layout=layout
     )
 
-    thread = threading.Thread(target = generate_and_notify, args=[generator])
-    thread.start()
+    generator.start();
 
-    return redirect(f'/download/{file_id}/page')
+    return redirect(f'/download/page/{file_id}')
 
 #Route di download file che permette di sapere al client quando il suo file e pronto
 
@@ -55,20 +49,22 @@ def download(file_id):
     threading.Thread(target=download_and_delete, args = [file_id]).start()
     return send_file(os.path.join(upload_folder, file_id+'_gen.pdf'), as_attachment=True)
 
-@app.route('/download/<file_id>/page')
+@app.route('/download/page/<file_id>')
 def download_page(file_id):
-    if(os.path.exists(os.path.join(upload_folder, file_id+'_gen.pdf'))):
-        threading.Thread(target=emit_pdf_ready, args=[3]).start()
     return render_template("download.html", id=file_id)
 
 def download_and_delete(file_id):
-    time.sleep(3)
+    time.sleep(10)
     os.remove(os.path.join(upload_folder, file_id+'.pdf'))
     os.remove(os.path.join(upload_folder, file_id+'_gen.pdf'))
 
-def emit_pdf_ready(time_sleep=0):
-    time.sleep(time_sleep)
-    socketio.emit('pdf_ready', {'file': 'done'})
+@app.route('/download/check/<file_id>')
+def check_download(file_id):
+    if (os.path.exists(os.path.join(upload_folder, file_id+'_gen.pdf'))):
+        status = 'ready'
+    else:
+        status = 'wait'
+    return {'status': status}
 
 if __name__ == "__main__":
     socketio.run(app)
