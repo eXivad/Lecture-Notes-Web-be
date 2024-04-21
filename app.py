@@ -8,8 +8,6 @@ import time
 upload_folder = os.path.join(os.getcwd(), 'temp')
 
 app = Flask(__name__)
-socketio = SocketIO(app)
-#app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.debug = True
 
 #Home route
@@ -65,7 +63,4 @@ def check_download(file_id):
     else:
         status = 'wait'
     return {'status': status}
-
-if __name__ == "__main__":
-    socketio.run(app)
 
