@@ -37,9 +37,9 @@ def generate_pdf():
     )
 
     print("Avvio generazione")
-    generator.start()
+    generator.run()
 
-    return redirect(f'/download/page/{file_id}')
+    return {'status': 'done'}
 
 #Route di download file che permette di sapere al client quando il suo file e pronto
 
