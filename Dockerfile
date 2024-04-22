@@ -1,7 +1,7 @@
 # Stage 1
 FROM python:3-slim-buster AS builder
 
-WORKDIR /Lecture-Notes-Web
+WORKDIR /
 
 RUN python3 -m venv venv
 ENV VIRTUAL_ENV=/Lecture-Notes-Web/venv
@@ -13,12 +13,12 @@ RUN pip install -r requirements.txt
 # Stage 2
 FROM python:3-slim-buster AS runner
 
-WORKDIR /Lecture-Notes-Web
+WORKDIR /
 
-COPY --from=builder /Lecture-Notes-Web/venv venv
+COPY --from=builder /venv venv
 COPY app.py app.py
 
-ENV VIRTUAL_ENV=/Lecture-Notes-Web/venv
+ENV VIRTUAL_ENV=/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV FLASK_APP=app.py
 
