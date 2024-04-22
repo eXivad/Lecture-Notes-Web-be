@@ -34,7 +34,7 @@ def generate_pdf():
 
     generator.run()
 
-    return {'download_link': f'{url_for('download', file_id = file_id)}'}
+    return {'download_link': f'{url_for("download", file_id = file_id)}'}
 
 
 #API Download Generated PDF and Delete them
