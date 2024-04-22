@@ -71,5 +71,5 @@ def emit_pdf_ready(time_sleep=0):
     socketio.emit('pdf_ready', {'file': 'done'})
 
 if __name__ == "__main__":
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0', port=8000)
 
