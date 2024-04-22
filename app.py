@@ -10,7 +10,7 @@ upload_folder = os.path.join(os.getcwd(), 'temp')
 app = Flask(__name__)
 socketio = SocketIO(app)
 #app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.debug = True
+#app.debug = True
 
 #Home route
 @app.route('/')

@@ -24,4 +24,4 @@ ENV FLASK_APP=app.py
 
 EXPOSE 5000
 
-CMD ["gunicorn" "-k" "geventwebsocket.gunicorn.workers.GeventWebSocketWorker" "-w" "1" "module:app"]
+CMD ["python", "app.py"]
