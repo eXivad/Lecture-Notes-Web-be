@@ -32,7 +32,6 @@
                 const downloadButton = document.createElement("button");
                 downloadButton.textContent = "Download File";
                 downloadButton.addEventListener("click", () => {
-                    document.removeChild(downloadButton);
                     window.open(data.download_link);
                 });
                 document.body.appendChild(downloadButton);
