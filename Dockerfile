@@ -2,6 +2,8 @@
 FROM python:3-slim-buster AS builder
 
 WORKDIR /
+COPY . /
+
 
 RUN python3 -m venv venv
 ENV VIRTUAL_ENV=venv
@@ -16,7 +18,7 @@ FROM python:3-slim-buster AS runner
 WORKDIR /
 
 COPY --from=builder /venv venv
-COPY app.py app.py
+COPY . /
 
 ENV VIRTUAL_ENV=/venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
