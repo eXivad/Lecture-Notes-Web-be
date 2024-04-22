@@ -4,7 +4,7 @@ FROM python:3-slim-buster AS builder
 WORKDIR /
 
 RUN python3 -m venv venv
-ENV VIRTUAL_ENV=/Lecture-Notes-Web/venv
+ENV VIRTUAL_ENV=venv
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 
 COPY requirements.txt .
