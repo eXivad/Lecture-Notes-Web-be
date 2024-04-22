@@ -31,6 +31,7 @@
 
     <script>
         // Simulate server-side file generation
+        /*
         var socket = io.connect('http://' + document.domain + ':' + location.port);
         socket.on('pdf_ready', (data) => {
             console.log(data)
@@ -38,6 +39,22 @@
             document.getElementById("downloadBtn").style.display = "block";
         });
         // Handle download button click
+        */
+
+        let intervalID = setInterval(
+            () => {
+                fetch('{{url_for("check_download", file_id = id)}}')
+                .then((res) => res.json())
+                .then((data) => {
+                    if(data['status'] = 'done'){
+                        document.getElementById("loader").style.display = "none";
+                        document.getElementById("downloadBtn").style.display = "block";
+                        clearInterval(intervalID)
+                    }
+                })
+            }, 5000
+        )
+
         document.getElementById("downloadBtn").addEventListener("click", function() {
             // Replace "path/to/your/file" with the actual file path on the server
             window.location.href = "{{ url_for('download', file_id=id) }}";
