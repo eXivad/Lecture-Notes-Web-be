@@ -1,14 +1,10 @@
 import os
-from flask import Flask, request, render_template, send_file, redirect
+from flask import Flask, request, render_template, send_file, url_for
 from lib.annotate import AnnotatedPDFGenerator, LayoutRule
-from flask_socketio import SocketIO
-import threading
-import time
 
 upload_folder = os.path.join(os.getcwd(), 'temp')
 
 app = Flask(__name__)
-#socketio = SocketIO(app)
 app.debug = True
 
 #Home route
@@ -29,50 +25,34 @@ def generate_pdf():
     #Salvo il file per la conversione
     f.save(os.path.join(upload_folder, file_id+'.pdf'))
 
-    #Avvio Conversione in nuovo Thread
+    #Avvio Conversione
     generator: AnnotatedPDFGenerator = AnnotatedPDFGenerator(
         input_fp=os.path.join(upload_folder, file_id+'.pdf'), 
         output_fp=os.path.join(upload_folder, file_id+'_gen.pdf'), 
         layout=layout
     )
 
-    print("Avvio generazione")
     generator.run()
 
-    return {'status': 'done'}
+    return {'download_link': f'{url_for('download', file_id = file_id)}'}
 
-#Route di download file che permette di sapere al client quando il suo file e pronto
 
+#API Download Generated PDF and Delete them
 @app.route('/download/<file_id>')
 def download(file_id):
-    #threading.Thread(target=download_and_delete, args = [file_id]).start()
-    return send_file(os.path.join(upload_folder, file_id+'_gen.pdf'), as_attachment=True)
 
-@app.route('/download/page/<file_id>')
-def download_page(file_id):
-    #if(os.path.exists(os.path.join(upload_folder, file_id+'_gen.pdf'))):
-     #   threading.Thread(target=emit_pdf_ready, args=[3]).start()
-    return render_template("download.html", id=file_id)
-
-@app.route('/download/check/<file_id>')
-def check_download(file_id):
-    if (os.path.exists(os.path.join(upload_folder, file_id+'_gen.pdf'))):
-        status = 'done'
-    else:
-        status = 'wait'
-
-    return {'status': status}
-
-'''
-def download_and_delete(file_id):
-    time.sleep(10)
+    response = send_file(os.path.join(upload_folder, file_id+'_gen.pdf'), as_attachment=True)
     os.remove(os.path.join(upload_folder, file_id+'.pdf'))
     os.remove(os.path.join(upload_folder, file_id+'_gen.pdf'))
 
-def emit_pdf_ready(time_sleep=0):
-    time.sleep(time_sleep)
-    socketio.emit('pdf_ready', {'file': 'done'})
+    return response
+
 '''
+@app.route('/download/page/<file_id>')
+def download_page(file_id):
+    return render_template("download.html", id=file_id)
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
 
+'''

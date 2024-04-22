@@ -7,7 +7,7 @@
 </head>
 <body>
     <h1>Lecture Notes Generator Web</h1>
-    <form action="{{url_for('generate_pdf')}}" method="post" enctype="multipart/form-data">
+    <form action="{{url_for('generate_pdf')}}" method="post" enctype="multipart/form-data" id="file_form">
         <input type="file" name="pdftoconvert" id="file_input" accept="application/pdf">
         <input type="radio" name="paper_type" id="paper_type_blank" value="Blank">
         <label for="paper_type_blank">Blank</label>
@@ -17,5 +17,26 @@
         <label for="paper_type_grid">Grid</label>
         <button type="submit">Invia</button>
     </form>
+
+    <script>
+        const form = document.getElementById("file_form")
+        form.addEventListener("submit", (event) => {
+            event.preventDefault();
+            formData = new FormData(form);
+            fetch("{{url_for('generate_pdf')}}", {
+                method: 'POST',
+                body: formData,  
+            })
+            .then((res) => res.json())
+            .then((data) => {
+                const downloadButton = document.createElement("button");
+                downloadButton.textContent = "Download File";
+                downloadButton.addEventListener("click", () => {
+                    window.open(data.download_link);
+                });
+                document.body.appendChild(downloadButton);
+            });     
+        })
+    </script>
 </body>
 </html>
