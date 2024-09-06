@@ -47,12 +47,5 @@ def download(file_id):
 
     return response
 
-'''
-@app.route('/download/page/<file_id>')
-def download_page(file_id):
-    return render_template("download.html", id=file_id)
-
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
-
-'''
