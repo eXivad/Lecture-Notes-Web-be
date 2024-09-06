@@ -1,9 +1,9 @@
 import enum
 import io
+import time
 from typing import Generator, Tuple
 
-import PIL
-from PIL.Image import Image
+from PIL import Image, ImageDraw
 from fitz import Matrix
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen.canvas import Canvas
@@ -37,43 +37,34 @@ class AnnotatedPDFGenerator(threading.Thread):
         self.ip: str = input_fp
         self.op: str = output_fp
         self.layout: LayoutRule = layout
+        self.line_image = self.create_line_image()
 
-    def draw_lines(self, pdf: Canvas, start_x: int) -> None:
-
-        # Line separating slides & grid
-        pdf.line(
-            x1=start_x,
-            x2=start_x,
-            y1=0,
-            y2=self.PAGE_HEIGHT
-        )
-
-        # Grid-specific lines
-        if self.layout == self.layout.BLANK:
-            return
-
-        # Line spacing
-        distance: int = self.PAGE_HEIGHT // self.LINE_DIV
-
-        # Horizontal Lines
-        for y in range(distance, int(self.PAGE_HEIGHT), distance):
-            pdf.line(start_x, y, self.PAGE_WIDTH, y)
-
-        # Only grid has vertical
-        if not self.layout == self.layout.GRID:
-            return
-
-        # Vertical Lines
-        for x in range(start_x + distance, int(self.PAGE_WIDTH), distance):
-            pdf.line(x, 0, x, self.PAGE_HEIGHT)
+    def create_line_image(self) -> Image:
+        image = Image.new('RGB', (self.PAGE_WIDTH, self.PAGE_HEIGHT), color='white')
+        draw = ImageDraw.Draw(image)
+        
+        if self.layout != LayoutRule.BLANK:
+            distance = self.PAGE_HEIGHT // self.LINE_DIV
+            
+            # Disegna linee orizzontali
+            for y in range(distance, self.PAGE_HEIGHT, distance):
+                draw.line([(0, y), (self.PAGE_WIDTH, y)], fill="#a5b4d4", width=2)
+            
+            # Disegna linee verticali per il layout GRID
+            if self.layout == LayoutRule.GRID:
+                for x in range(distance, self.PAGE_WIDTH, distance):
+                    draw.line([(x, 0), (x, self.PAGE_HEIGHT)], fill="#a5b4d4", width=2)
+        
+        # Disegna la linea centrale e la linea di inizio pagina
+        draw.line([(0, self.PAGE_HEIGHT // 2), (self.PAGE_WIDTH, self.PAGE_HEIGHT // 2)], fill="#a5b4d4", width=3)
+        draw.line([(0, 2), (self.PAGE_WIDTH, 2)], fill="#a5b4d4", width=3)
+        
+        return image
 
     def page_fit_rescale(self, height: int, width: int) -> Tuple[int, int]:
-
-        new_height: int = self.PAGE_HEIGHT // 2
-        new_width_percent: float = float(new_height) / float(height)
-        new_width: float = new_width_percent * float(width)
-
-        return int(new_width), int(new_height)
+        new_height = self.PAGE_HEIGHT // 2
+        new_width = int((new_height / height) * width)
+        return new_width, new_height
 
     def run(self) -> None:
 
@@ -83,11 +74,15 @@ class AnnotatedPDFGenerator(threading.Thread):
         )
 
         new_pdf.setPageCompression(1)
+        line_image_reader = ImageReader(self.line_image)
 
         for im1, im2 in self.pdf_pages():
 
             # im1 & im2 will have same height & width
             new_width, new_height = self.page_fit_rescale(width=im1.width, height=im1.height)
+
+            #Notes Image
+            new_pdf.drawImage(line_image_reader, 0, 0, self.PAGE_WIDTH, self.PAGE_HEIGHT)
 
             # Draw im1
             new_pdf.drawImage(
@@ -99,16 +94,8 @@ class AnnotatedPDFGenerator(threading.Thread):
                 export_image(im2), x=0, y=0, height=new_height, width=new_width
             )
 
-            new_pdf.setStrokeColor("#a5b4d4")
-            new_pdf.setLineWidth(2)
-
-            # Draw grid lines
-            self.draw_lines(
-                pdf=new_pdf,
-                start_x=new_width
-            )
-
             # Draw midline & page-start divider
+            new_pdf.setStrokeColor("#a5b4d4")
             new_pdf.setLineWidth(3)
             new_pdf.line(0, self.PAGE_HEIGHT - new_height, self.PAGE_WIDTH, self.PAGE_HEIGHT - new_height)
             new_pdf.line(0, 2, self.PAGE_WIDTH, 2)
@@ -120,7 +107,7 @@ class AnnotatedPDFGenerator(threading.Thread):
         new_pdf.save()
         
 
-    def pdf_pages(self) -> Generator[Tuple[Image, Image], None, None]:
+    def pdf_pages(self) -> Generator[Tuple[Image.Image, Image.Image], None, None]:
 
         pdf: fitz.Document = fitz.Document(filename=self.ip)
 
@@ -141,15 +128,25 @@ class AnnotatedPDFGenerator(threading.Thread):
             )
 
             # Generate Page 1 PIL Image
-            page_1_im: Image = PIL.Image.frombytes("RGB", (page_1_map.width, page_1_map.height), page_1_map.samples)
+            page_1_im: Image = Image.frombytes("RGB", (page_1_map.width, page_1_map.height), page_1_map.samples)
 
             # Generate Page 2 PIL Image
             page_2_im: Image = (
-                PIL.Image.frombytes("RGB", (page_2_map.width, page_2_map.height), page_2_map.samples)
+                Image.frombytes("RGB", (page_2_map.width, page_2_map.height), page_2_map.samples)
                 .resize((page_1_im.width, page_1_im.height))
                 if page_2_map else
-                PIL.Image.new("RGB", (page_1_map.width, page_1_map.height), "white")  # Fallback white
+                Image.new("RGB", (page_1_map.width, page_1_map.height), "white")  # Fallback white
             )
 
             yield page_1_im, page_2_im
+
+def main():
+    generator = AnnotatedPDFGenerator('input.pdf', 'output.pdf', LayoutRule.GRID)
+    start = time.time()
+    generator.run()
+    finish = time.time()
+    print(f"Tempo di esecuzione: {finish-start:.2f} secondi")
+
+if __name__ == "__main__":
+    main()
 
