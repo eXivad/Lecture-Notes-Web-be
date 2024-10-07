@@ -46,6 +46,8 @@ def download(file_id):
     os.remove(os.path.join(upload_folder, file_id+'_gen.pdf'))
 
     return response
-
+'''
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8000)
+
+'''
