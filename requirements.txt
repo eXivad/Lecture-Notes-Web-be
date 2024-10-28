@@ -10,3 +10,4 @@ PyMuPDF==1.24.2
 PyMuPDFb==1.24.1
 reportlab==4.2.0
 Werkzeug==3.0.2
+flask_cors

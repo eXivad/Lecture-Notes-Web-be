@@ -1,10 +1,12 @@
 import os
 from flask import Flask, request, render_template, send_file, url_for
 from lib.annotate import AnnotatedPDFGenerator, LayoutRule
+from flask_cors import CORS
 
 upload_folder = os.path.join(os.getcwd(), 'temp')
 
 app = Flask(__name__)
+CORS(app)
 app.debug = True
 
 #Home route
