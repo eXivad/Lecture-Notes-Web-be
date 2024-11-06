@@ -9,11 +9,6 @@ app = Flask(__name__)
 CORS(app)
 app.debug = True
 
-#Home route
-@app.route('/')
-def home():
-    return render_template("index.html")
-
 @app.route('/generate', methods = ["POST"])
 def generate_pdf():
 
